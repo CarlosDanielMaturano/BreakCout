@@ -55,17 +55,38 @@ int main(void) {
 
         /* ==== BALL UPDATE ==== */
         // normalize ball dir vector for fixing it diagonal movement, 
-        // the, scale it 
-        Vector2 dir = Vector2Scale(Vector2Normalize(ball.dir), 5.0);
-        Vector2 new_ball_pos  = Vector2Add((Vector2){ ball.rect.x, ball.rect.y}, dir);
-        ball.rect.x = new_ball_pos.x;
-        ball.rect.y = new_ball_pos.y;
+        // then, scale it 
+        ball.dir = Vector2Scale(Vector2Normalize(ball.dir), 5.0);
 
-        if (ball.rect.x >= SCREEN_WIDTH - ball.rect.width || ball.rect.x <= 0)
-            ball.dir.x *= -1.0;
-
+        ball.rect.y += ball.dir.y;
         if (ball.rect.y >= SCREEN_HEIGHT - ball.rect.height || ball.rect.y <= 0)
             ball.dir.y *= -1.0;
+        if (CheckCollisionRecs(pedal.rect, ball.rect)) {
+            // if the ball is going down, and collide with the pedal,
+            // it's bottom y value  becomes the pedal's top y value
+            if (ball.dir.y > 0)
+                ball.rect.y = pedal.rect.y - ball.rect.height;
+            // if the ball is going up, and collide with the pedal,
+            // it's top y value becomes the pedal's bottom y value
+            else if (ball.dir.y < 0)
+                ball.rect.y = pedal.rect.y + pedal.rect.height;
+            ball.dir.y *= -1;
+        }
+
+        ball.rect.x += ball.dir.x;
+        if (ball.rect.x >= SCREEN_WIDTH - ball.rect.width || ball.rect.x <= 0)
+            ball.dir.x *= -1.0;
+        if (CheckCollisionRecs(pedal.rect, ball.rect)) {
+            // if the ball is going right, and collide with the pedal,
+            // it's right x value becomes the pedal's left x value
+            if (ball.dir.x > 0)
+                ball.rect.x = pedal.rect.x - ball.rect.width;
+            // if the ball is going right, and collide with the pedal,
+            // it's left side x value becomes the pedal's right x value
+            else if (ball.dir.x < 0)
+                ball.rect.x = pedal.rect.x + pedal.rect.width;
+            ball.dir.x *= -1;
+        }
 
         BeginDrawing();
             DrawRectangleRec(pedal.rect, pedal.color);
