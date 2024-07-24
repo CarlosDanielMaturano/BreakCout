@@ -6,7 +6,7 @@
 #define INITIAL_PEDAL_Y SCREEN_HEIGHT - 50.0
 #define PEDAL_WIDTH 100.0
 #define PEDAL_SPEED 6.5
-#define BALL_SIZE 20
+#define BALL_SIZE 15
 #define BALL_SPEED 5.0
 #define BLOCK_X_COUNT 10
 #define BLOCK_Y_COUNT 7
@@ -28,7 +28,7 @@ Object pedal = {
         .height = 20.0
     },
     .dir = { .x = PEDAL_SPEED, .y = 0.0 },
-    .color = RED,
+    .color = (Color) { 0, 100, 255, 255 },
     .is_valid = 1,
 };
 
@@ -40,7 +40,7 @@ Object ball = {
         .height = BALL_SIZE
     },
     .dir = { BALL_SPEED, BALL_SPEED },
-    .color = GREEN,
+    .color = RAYWHITE,
     .is_valid = 1,
 };
 
