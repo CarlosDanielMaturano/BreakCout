@@ -8,6 +8,7 @@
 #define PEDAL_SPEED 6.5
 #define BALL_SIZE 15
 #define BALL_SPEED 5.0
+#define BALL_SPEED_STEP 0.045
 #define BLOCK_X_COUNT 10
 #define BLOCK_Y_COUNT 7
 #define BLOCKS_COUNT BLOCK_X_COUNT * BLOCK_Y_COUNT
@@ -138,7 +139,7 @@ int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "breakout");
     SetTargetFPS(60);
 
-    float ball_dir_scale = 5.0;
+    float ball_speed_scale = 5.0;
 
     while (!WindowShouldClose()) {
         /* ==== PLAYER UPDATE ==== */
@@ -156,31 +157,39 @@ int main(void) {
             pedal.rect.x = 0;
 
         /* ==== BALL UPDATE ==== */
-        ball_dir_scale += 0.001;
         // normalize ball dir vector for fixing it diagonal movement, 
         // then, scale it 
-        ball.dir = Vector2Scale(Vector2Normalize(ball.dir), ball_dir_scale);
+        ball.dir = Vector2Scale(Vector2Normalize(ball.dir), ball_speed_scale);
         ball.rect.y += ball.dir.y;
 
-        if (ball.rect.y >= SCREEN_HEIGHT - ball.rect.height || ball.rect.y <= 0)
+        if (ball.rect.y >= SCREEN_HEIGHT - ball.rect.height || ball.rect.y <= 0) {
             ball.dir.y *= -1.0;
-        apply_vertical_collision(&ball, &pedal);
+            ball_speed_scale += BALL_SPEED_STEP;
+        }
+        if (apply_vertical_collision(&ball, &pedal))
+            ball_speed_scale += 0.1;
         for (int i = 0; i < BLOCKS_COUNT; i++)  
             if (blocks[i].is_valid &&
-                apply_vertical_collision(&ball, &blocks[i])) {
+                apply_vertical_collision(&ball, &blocks[i])) 
+            {
+                ball_speed_scale += BALL_SPEED_STEP;
                 blocks[i].is_valid = 0;
             }
 
         ball.rect.x += ball.dir.x;
-        if (ball.rect.x >= SCREEN_WIDTH - ball.rect.width || ball.rect.x <= 0)
+        if (ball.rect.x >= SCREEN_WIDTH - ball.rect.width || ball.rect.x <= 0) {
             ball.dir.x *= -1.0;
-        apply_horizontal_collision(&ball, &pedal);
+            ball_speed_scale += BALL_SPEED_STEP;
+        }
+        if (apply_horizontal_collision(&ball, &pedal))
+            ball_speed_scale += 0.1;
         for (int i = 0; i < BLOCKS_COUNT; i++) 
             if (blocks[i].is_valid &&
-                apply_horizontal_collision(&ball, &blocks[i])) {
+                apply_horizontal_collision(&ball, &blocks[i]))
+            {
+                ball_speed_scale += BALL_SPEED_STEP;
                 blocks[i].is_valid = 0;
             }
-
 
         BeginDrawing();
             DrawRectangleRec(pedal.rect, pedal.color);
