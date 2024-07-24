@@ -129,6 +129,7 @@ int main(void) {
     create_blocks();
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "breakout");
     SetTargetFPS(60);
+    float ball_dir_scale = 5.0;
 
     while (!WindowShouldClose()) {
         /* ==== PLAYER UPDATE ==== */
@@ -146,10 +147,12 @@ int main(void) {
             pedal.rect.x = 0;
 
         /* ==== BALL UPDATE ==== */
+        ball_dir_scale += 0.001;
         // normalize ball dir vector for fixing it diagonal movement, 
         // then, scale it 
-        ball.dir = Vector2Scale(Vector2Normalize(ball.dir), 5.0);
+        ball.dir = Vector2Scale(Vector2Normalize(ball.dir), ball_dir_scale);
         ball.rect.y += ball.dir.y;
+
         if (ball.rect.y >= SCREEN_HEIGHT - ball.rect.height || ball.rect.y <= 0)
             ball.dir.y *= -1.0;
         apply_vertical_collision(&ball, &pedal);
