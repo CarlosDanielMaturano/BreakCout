@@ -1,7 +1,8 @@
 #include "raylib.h"
 #include "raymath.h"
-
-#define SCREEN_WIDTH 720
+#include <stddef.h>
+#include <stdio.h>
+#define SCREEN_WIDTH 660
 #define SCREEN_HEIGHT 420
 #define INITIAL_PEDAL_X (SCREEN_WIDTH - PEDAL_WIDTH) / 2 
 #define INITIAL_PEDAL_Y SCREEN_HEIGHT - 50.0
@@ -9,6 +10,9 @@
 #define PEDAL_SPEED 6.5
 #define BALL_SIZE 20
 #define BALL_SPEED 5.0
+#define BLOCK_X_COUNT 10
+#define BLOCK_Y_COUNT 5
+#define BLOCKS_COUNT BLOCK_X_COUNT * BLOCK_Y_COUNT
 
 typedef struct Object {
     Rectangle rect;
@@ -39,6 +43,8 @@ Object ball = {
     .color = GREEN,
 };
 
+Object blocks[BLOCKS_COUNT];
+
 void reset_game() {
     pedal.rect = (Rectangle) {
         .x = INITIAL_PEDAL_X,
@@ -56,8 +62,33 @@ void reset_game() {
     ball.dir = (Vector2) { BALL_SPEED, BALL_SPEED };
 }
 
-int main(void) {
+void create_blocks() {
+    Vector2 block_pos = (Vector2) {
+        .x = 30,
+        .y = 10,
+    };
+    int idx = 0;
+    for (int j = 1; j <= BLOCK_Y_COUNT; j++) {
+        for (int i = 0; i < BLOCK_X_COUNT; i++) {
+            blocks[idx++] = (Object) {
+                .rect = (Rectangle) {
+                    .x = block_pos.x,
+                    .y = block_pos.y,
+                    .width = 50,
+                    .height = 20,
+                },
+                .dir = (Vector2) { 0.0, 0.0 },
+                .color = RED,
+            };
+            block_pos.x += 60;
+        }
+        block_pos.x = 30;
+        block_pos.y += 30;
+    };
+};
 
+int main(void) {
+    create_blocks();
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "breakout");
     SetTargetFPS(60);
 
@@ -114,6 +145,13 @@ int main(void) {
         BeginDrawing();
             DrawRectangleRec(pedal.rect, pedal.color);
             DrawRectangleRec(ball.rect, ball.color);
+    
+            for (int i = 0; i < BLOCKS_COUNT; i++) {
+                Object block = blocks[i];
+                if (block.rect.width && block.rect.height) 
+                    DrawRectangleRec(block.rect, block.color);
+            }
+
             ClearBackground(RAYWHITE);
         EndDrawing();
     }
