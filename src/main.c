@@ -1,9 +1,7 @@
 #include "raylib.h"
 #include "raymath.h"
-#include <stddef.h>
-#include <stdio.h>
 #define SCREEN_WIDTH 660
-#define SCREEN_HEIGHT 420
+#define SCREEN_HEIGHT 600
 #define INITIAL_PEDAL_X (SCREEN_WIDTH - PEDAL_WIDTH) / 2 
 #define INITIAL_PEDAL_Y SCREEN_HEIGHT - 50.0
 #define PEDAL_WIDTH 100.0
@@ -11,7 +9,7 @@
 #define BALL_SIZE 20
 #define BALL_SPEED 5.0
 #define BLOCK_X_COUNT 10
-#define BLOCK_Y_COUNT 5
+#define BLOCK_Y_COUNT 7
 #define BLOCKS_COUNT BLOCK_X_COUNT * BLOCK_Y_COUNT
 
 typedef struct Object {
@@ -48,6 +46,16 @@ Object ball = {
 
 Object blocks[BLOCKS_COUNT];
 
+Color rainbow_colors[] = {
+    (Color) { 255, 0, 0, 255 }, // red
+    (Color) { 255, 165, 0, 255 }, // orange
+    (Color) { 255, 255, 0, 255 }, // yellow
+    (Color) { 0, 128, 0, 255 }, // green
+    (Color) { 0, 0, 255, 255 }, // blue
+    (Color) { 75, 0, 130,255 }, // indigo
+    (Color) { 238, 130, 238,255}, // violet
+};
+
 void reset_game() {
     pedal.rect = (Rectangle) {
         .x = INITIAL_PEDAL_X,
@@ -68,10 +76,10 @@ void reset_game() {
 void create_blocks() {
     Vector2 block_pos = (Vector2) {
         .x = 30,
-        .y = 10,
+        .y = 80,
     };
     int idx = 0;
-    for (int j = 1; j <= BLOCK_Y_COUNT; j++) {
+    for (int j = 0; j < BLOCK_Y_COUNT; j++) {
         for (int i = 0; i < BLOCK_X_COUNT; i++) {
             blocks[idx++] = (Object) {
                 .rect = (Rectangle) {
@@ -81,7 +89,7 @@ void create_blocks() {
                     .height = 20,
                 },
                 .dir = (Vector2) { 0.0, 0.0 },
-                .color = RED,
+                .color  = rainbow_colors[j],
                 .is_valid = 1,
             };
             block_pos.x += 60;
@@ -129,6 +137,7 @@ int main(void) {
     create_blocks();
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "breakout");
     SetTargetFPS(60);
+
     float ball_dir_scale = 5.0;
 
     while (!WindowShouldClose()) {
@@ -176,18 +185,14 @@ int main(void) {
         BeginDrawing();
             DrawRectangleRec(pedal.rect, pedal.color);
             DrawRectangleRec(ball.rect, ball.color);
-    
             for (int i = 0; i < BLOCKS_COUNT; i++) {
                 Object block = blocks[i];
                 if (block.is_valid) 
                     DrawRectangleRec(block.rect, block.color);
             }
-
-            ClearBackground(RAYWHITE);
+            ClearBackground(BLACK);
         EndDrawing();
     }
-
     CloseWindow();
-
     return 0;
 }
