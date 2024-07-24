@@ -4,6 +4,9 @@
 #define SCREEN_WIDTH 720
 #define SCREEN_HEIGHT 420
 #define PEDAL_WIDTH 100.0
+#define BALL_SIZE 20
+#define INITIAL_PEDAL_X (SCREEN_WIDTH - PEDAL_WIDTH) / 2 
+#define INITIAL_PEDAL_Y SCREEN_HEIGHT - 50.0
 #define BALL_SPEED 5.0f
 
 typedef struct Object {
@@ -12,30 +15,30 @@ typedef struct Object {
     Color color;
 } Object;
 
+// player's pedal 
+Object pedal = {
+    .rect = (Rectangle) { 
+        .x = INITIAL_PEDAL_X,
+        .y = INITIAL_PEDAL_Y,
+        .width = PEDAL_WIDTH,
+        .height = 20.0
+    },
+    .dir = { .x = 6.5, .y = 0.0 },
+    .color = RED,
+};
+
+Object ball = {
+    .rect = (Rectangle) { 
+        .x = INITIAL_PEDAL_X + (PEDAL_WIDTH - BALL_SIZE) / 2,
+        .y = INITIAL_PEDAL_Y - 2 * BALL_SIZE,
+        .width = BALL_SIZE,
+        .height = BALL_SIZE
+    },
+    .dir = { BALL_SPEED, BALL_SPEED },
+    .color = GREEN,
+};
+
 int main(void) {
-
-    // player
-    Object pedal = {
-        .rect = (Rectangle) { 
-            .x = (SCREEN_WIDTH - PEDAL_WIDTH) / 2,
-            .y = SCREEN_HEIGHT - 50.0,
-            .width = PEDAL_WIDTH,
-            .height = 20.0
-        },
-        .dir = { .x = 6.5, .y = 0.0 },
-        .color = RED,
-    };
-
-    Object ball = {
-        .rect = (Rectangle) { 
-            .x = 0.0,
-            .y = 0.0,
-            .width = 20,
-            .height = 20
-        },
-        .dir = { BALL_SPEED, BALL_SPEED },
-        .color = GREEN,
-    };
 
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "breakout");
     SetTargetFPS(60);
