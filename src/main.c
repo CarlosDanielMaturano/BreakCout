@@ -3,11 +3,12 @@
 
 #define SCREEN_WIDTH 720
 #define SCREEN_HEIGHT 420
-#define PEDAL_WIDTH 100.0
-#define BALL_SIZE 20
 #define INITIAL_PEDAL_X (SCREEN_WIDTH - PEDAL_WIDTH) / 2 
 #define INITIAL_PEDAL_Y SCREEN_HEIGHT - 50.0
-#define BALL_SPEED 5.0f
+#define PEDAL_WIDTH 100.0
+#define PEDAL_SPEED 6.5
+#define BALL_SIZE 20
+#define BALL_SPEED 5.0
 
 typedef struct Object {
     Rectangle rect;
@@ -23,7 +24,7 @@ Object pedal = {
         .width = PEDAL_WIDTH,
         .height = 20.0
     },
-    .dir = { .x = 6.5, .y = 0.0 },
+    .dir = { .x = PEDAL_SPEED, .y = 0.0 },
     .color = RED,
 };
 
@@ -38,6 +39,23 @@ Object ball = {
     .color = GREEN,
 };
 
+void reset_game() {
+    pedal.rect = (Rectangle) {
+        .x = INITIAL_PEDAL_X,
+        .y = INITIAL_PEDAL_Y,
+        .width = PEDAL_WIDTH,
+        .height = 20.0,
+    };
+    pedal.dir = (Vector2) { .x = PEDAL_SPEED, .y = 0.0 };
+    ball.rect = (Rectangle) {
+        .x = INITIAL_PEDAL_X + (PEDAL_WIDTH - BALL_SIZE) / 2,
+        .y = INITIAL_PEDAL_Y - 2 * BALL_SIZE,
+        .width = BALL_SIZE,
+        .height = BALL_SIZE
+    };
+    ball.dir = (Vector2) { BALL_SPEED, BALL_SPEED };
+}
+
 int main(void) {
 
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "breakout");
@@ -49,6 +67,8 @@ int main(void) {
             pedal.rect.x += pedal.dir.x;
         if (IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A))
             pedal.rect.x -= pedal.dir.x;
+
+        if (IsKeyDown(KEY_W)) reset_game();
 
         // dont let the pedal go out of bounds
         if (pedal.rect.x >= SCREEN_WIDTH - pedal.rect.width) 
