@@ -18,6 +18,7 @@ typedef struct Object {
     Rectangle rect;
     Vector2 dir;
     Color color;
+    char is_valid;
 } Object;
 
 // player's pedal 
@@ -30,6 +31,7 @@ Object pedal = {
     },
     .dir = { .x = PEDAL_SPEED, .y = 0.0 },
     .color = RED,
+    .is_valid = 1,
 };
 
 Object ball = {
@@ -41,6 +43,7 @@ Object ball = {
     },
     .dir = { BALL_SPEED, BALL_SPEED },
     .color = GREEN,
+    .is_valid = 1,
 };
 
 Object blocks[BLOCKS_COUNT];
@@ -79,6 +82,7 @@ void create_blocks() {
                 },
                 .dir = (Vector2) { 0.0, 0.0 },
                 .color = RED,
+                .is_valid = 1,
             };
             block_pos.x += 60;
         }
@@ -101,7 +105,7 @@ int apply_vertical_collision(Object *a, Object *b) {
         a->dir.y *= -1;
         return 1;
     }
-    return -1;
+    return 0;
 }
 
 // returns true if a collide with b
@@ -118,7 +122,7 @@ int apply_horizontal_collision(Object *a, Object *b) {
         a->dir.x *= -1;
         return 1;
     }
-    return -1;
+    return 0;
 }
 
 int main(void) {
@@ -145,20 +149,26 @@ int main(void) {
         // normalize ball dir vector for fixing it diagonal movement, 
         // then, scale it 
         ball.dir = Vector2Scale(Vector2Normalize(ball.dir), 5.0);
-
         ball.rect.y += ball.dir.y;
         if (ball.rect.y >= SCREEN_HEIGHT - ball.rect.height || ball.rect.y <= 0)
             ball.dir.y *= -1.0;
         apply_vertical_collision(&ball, &pedal);
-        for (int i = 0; i < BLOCKS_COUNT; i++) 
-            apply_vertical_collision(&ball, &blocks[i]);
+        for (int i = 0; i < BLOCKS_COUNT; i++)  
+            if (blocks[i].is_valid &&
+                apply_vertical_collision(&ball, &blocks[i])) {
+                blocks[i].is_valid = 0;
+            }
 
         ball.rect.x += ball.dir.x;
         if (ball.rect.x >= SCREEN_WIDTH - ball.rect.width || ball.rect.x <= 0)
             ball.dir.x *= -1.0;
-        apply_vertical_collision(&ball, &pedal);
+        apply_horizontal_collision(&ball, &pedal);
         for (int i = 0; i < BLOCKS_COUNT; i++) 
-            apply_horizontal_collision(&ball, &blocks[i]);
+            if (blocks[i].is_valid &&
+                apply_horizontal_collision(&ball, &blocks[i])) {
+                blocks[i].is_valid = 0;
+            }
+
 
         BeginDrawing();
             DrawRectangleRec(pedal.rect, pedal.color);
@@ -166,7 +176,7 @@ int main(void) {
     
             for (int i = 0; i < BLOCKS_COUNT; i++) {
                 Object block = blocks[i];
-                if (block.rect.width && block.rect.height) 
+                if (block.is_valid) 
                     DrawRectangleRec(block.rect, block.color);
             }
 
