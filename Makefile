@@ -1,10 +1,12 @@
 CC=clang
 
 build:
+	-mkdir out 
 	$(CC) src/main.c -o out/main -lraylib -lm
+	cp -r src/resources ./out/
 
 run:
-	./out/main
+	cd out && ./main
 
 all:
 	make build

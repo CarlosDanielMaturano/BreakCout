@@ -7,7 +7,7 @@
 #define INITIAL_PEDAL_X (SCREEN_WIDTH - PEDAL_WIDTH) / 2 
 #define INITIAL_PEDAL_Y SCREEN_HEIGHT - 50.0
 #define PEDAL_WIDTH 100.0
-#define PEDAL_SPEED 6.5
+#define PEDAL_SPEED 8.0
 #define BALL_SIZE 15
 #define BALL_SPEED 5.0
 #define BALL_SPEED_STEP 0.045
@@ -65,13 +65,17 @@ Color rainbow_colors[] = {
     (Color) { 238, 130, 238,255}, // violet
 };
 
+
 float ball_speed_scale = 5.0;
 int player_score = 0;
 
 int main(void) {
     create_blocks();
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "breakout");
+    InitAudioDevice();
     SetTargetFPS(60);
+
+    Sound ball_collision_sound = LoadSound("resources/sound.wav");
 
     while (!WindowShouldClose()) {
         /* ==== PLAYER UPDATE ==== */
@@ -99,8 +103,10 @@ int main(void) {
             ball_speed_scale += BALL_SPEED_STEP;
         }
         if (ball.rect.y >= SCREEN_HEIGHT - ball.rect.height) reset_game();
-        if (apply_vertical_collision(&ball, &pedal))
+        if (apply_vertical_collision(&ball, &pedal)) {
             ball_speed_scale += 0.1;
+            PlaySound(ball_collision_sound);
+        }
         for (int i = 0; i < BLOCKS_COUNT; i++)  
             if (blocks[i].is_valid &&
                 apply_vertical_collision(&ball, &blocks[i])) 
@@ -108,12 +114,14 @@ int main(void) {
                 player_score += 10;
                 ball_speed_scale += BALL_SPEED_STEP;
                 blocks[i].is_valid = 0;
+                PlaySound(ball_collision_sound);
             }
 
         ball.rect.x += ball.dir.x;
         if (ball.rect.x >= SCREEN_WIDTH - ball.rect.width || ball.rect.x <= 0) {
             ball.dir.x *= -1.0;
             ball_speed_scale += BALL_SPEED_STEP;
+            PlaySound(ball_collision_sound);
         }
         if (apply_horizontal_collision(&ball, &pedal))
             ball_speed_scale += 0.1;
@@ -121,6 +129,7 @@ int main(void) {
             if (blocks[i].is_valid &&
                 apply_horizontal_collision(&ball, &blocks[i]))
             {
+                PlaySound(ball_collision_sound);
                 player_score += 10;
                 ball_speed_scale += BALL_SPEED_STEP;
                 blocks[i].is_valid = 0;
@@ -147,6 +156,7 @@ int main(void) {
             ClearBackground(BLACK);
         EndDrawing();
     }
+    UnloadSound(ball_collision_sound);
     CloseWindow();
     return 0;
 }
@@ -230,4 +240,3 @@ int apply_horizontal_collision(Object *a, Object *b) {
     }
     return 0;
 }
-
