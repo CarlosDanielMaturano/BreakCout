@@ -1,5 +1,7 @@
 #include "raylib.h"
 #include "raymath.h"
+#include <math.h>
+#include <stdlib.h>
 #define SCREEN_WIDTH 660
 #define SCREEN_HEIGHT 600
 #define INITIAL_PEDAL_X (SCREEN_WIDTH - PEDAL_WIDTH) / 2 
@@ -12,6 +14,7 @@
 #define BLOCK_X_COUNT 10
 #define BLOCK_Y_COUNT 7
 #define BLOCKS_COUNT BLOCK_X_COUNT * BLOCK_Y_COUNT
+#define FONT_SIZE 60
 
 typedef struct Object {
     Rectangle rect;
@@ -56,6 +59,9 @@ Color rainbow_colors[] = {
     (Color) { 75, 0, 130,255 }, // indigo
     (Color) { 238, 130, 238,255}, // violet
 };
+
+float ball_speed_scale = 5.0;
+int player_score = 0;
 
 void reset_game() {
     pedal.rect = (Rectangle) {
@@ -139,7 +145,7 @@ int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "breakout");
     SetTargetFPS(60);
 
-    float ball_speed_scale = 5.0;
+    int player_score_size = 0;
 
     while (!WindowShouldClose()) {
         /* ==== PLAYER UPDATE ==== */
@@ -172,6 +178,7 @@ int main(void) {
             if (blocks[i].is_valid &&
                 apply_vertical_collision(&ball, &blocks[i])) 
             {
+                player_score += 10;
                 ball_speed_scale += BALL_SPEED_STEP;
                 blocks[i].is_valid = 0;
             }
@@ -187,11 +194,22 @@ int main(void) {
             if (blocks[i].is_valid &&
                 apply_horizontal_collision(&ball, &blocks[i]))
             {
+                player_score += 10;
                 ball_speed_scale += BALL_SPEED_STEP;
                 blocks[i].is_valid = 0;
             }
 
         BeginDrawing();
+            player_score_size = floor(log10(abs(player_score))) + 1;
+            const char *score = TextFormat("%d", player_score);
+            const int score_width = MeasureText(score, FONT_SIZE);
+            DrawText(
+                score,
+                (SCREEN_WIDTH - score_width)/2,
+                10,
+                FONT_SIZE,
+                WHITE
+            );
             DrawRectangleRec(pedal.rect, pedal.color);
             DrawRectangleRec(ball.rect, ball.color);
             for (int i = 0; i < BLOCKS_COUNT; i++) {

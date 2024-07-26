@@ -1,7 +1,7 @@
 CC=clang
 
 build:
-	$(CC) src/main.c -o out/main -lraylib
+	$(CC) src/main.c -o out/main -lraylib -lm
 
 run:
 	./out/main
