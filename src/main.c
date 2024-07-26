@@ -23,6 +23,11 @@ typedef struct Object {
     char is_valid;
 } Object;
 
+void reset_game();
+void create_blocks();
+int apply_vertical_collision(Object *a, Object *b);
+int apply_horizontal_collision(Object *a, Object *b);
+
 // player's pedal 
 Object pedal = {
     .rect = (Rectangle) { 
@@ -62,6 +67,88 @@ Color rainbow_colors[] = {
 
 float ball_speed_scale = 5.0;
 int player_score = 0;
+
+int main(void) {
+    create_blocks();
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "breakout");
+    SetTargetFPS(60);
+
+    while (!WindowShouldClose()) {
+        /* ==== PLAYER UPDATE ==== */
+        if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D))
+            pedal.rect.x += pedal.dir.x;
+        if (IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A))
+            pedal.rect.x -= pedal.dir.x;
+
+        if (IsKeyDown(KEY_W)) reset_game();
+
+        // dont let the pedal go out of bounds
+        if (pedal.rect.x >= SCREEN_WIDTH - pedal.rect.width) 
+            pedal.rect.x = SCREEN_WIDTH - pedal.rect.width;
+        if (pedal.rect.x <= 0) 
+            pedal.rect.x = 0;
+
+        /* ==== BALL UPDATE ==== */
+        // normalize ball dir vector for fixing it diagonal movement, 
+        // then, scale it 
+        ball.dir = Vector2Scale(Vector2Normalize(ball.dir), ball_speed_scale);
+        ball.rect.y += ball.dir.y;
+
+        if (ball.rect.y >= SCREEN_HEIGHT - ball.rect.height || ball.rect.y <= 0) {
+            ball.dir.y *= -1.0;
+            ball_speed_scale += BALL_SPEED_STEP;
+        }
+        if (apply_vertical_collision(&ball, &pedal))
+            ball_speed_scale += 0.1;
+        for (int i = 0; i < BLOCKS_COUNT; i++)  
+            if (blocks[i].is_valid &&
+                apply_vertical_collision(&ball, &blocks[i])) 
+            {
+                player_score += 10;
+                ball_speed_scale += BALL_SPEED_STEP;
+                blocks[i].is_valid = 0;
+            }
+
+        ball.rect.x += ball.dir.x;
+        if (ball.rect.x >= SCREEN_WIDTH - ball.rect.width || ball.rect.x <= 0) {
+            ball.dir.x *= -1.0;
+            ball_speed_scale += BALL_SPEED_STEP;
+        }
+        if (apply_horizontal_collision(&ball, &pedal))
+            ball_speed_scale += 0.1;
+        for (int i = 0; i < BLOCKS_COUNT; i++) 
+            if (blocks[i].is_valid &&
+                apply_horizontal_collision(&ball, &blocks[i]))
+            {
+                player_score += 10;
+                ball_speed_scale += BALL_SPEED_STEP;
+                blocks[i].is_valid = 0;
+            }
+
+        BeginDrawing();
+            const int player_score_size = floor(log10(abs(player_score))) + 1;
+            const char *score = TextFormat("%d", player_score);
+            const int score_width = MeasureText(score, FONT_SIZE);
+            DrawText(
+                score,
+                (SCREEN_WIDTH - score_width)/2,
+                10,
+                FONT_SIZE,
+                WHITE
+            );
+            DrawRectangleRec(pedal.rect, pedal.color);
+            DrawRectangleRec(ball.rect, ball.color);
+            for (int i = 0; i < BLOCKS_COUNT; i++) {
+                Object block = blocks[i];
+                if (block.is_valid) 
+                    DrawRectangleRec(block.rect, block.color);
+            }
+            ClearBackground(BLACK);
+        EndDrawing();
+    }
+    CloseWindow();
+    return 0;
+}
 
 void reset_game() {
     pedal.rect = (Rectangle) {
@@ -140,86 +227,3 @@ int apply_horizontal_collision(Object *a, Object *b) {
     return 0;
 }
 
-int main(void) {
-    create_blocks();
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "breakout");
-    SetTargetFPS(60);
-
-    int player_score_size = 0;
-
-    while (!WindowShouldClose()) {
-        /* ==== PLAYER UPDATE ==== */
-        if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D))
-            pedal.rect.x += pedal.dir.x;
-        if (IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A))
-            pedal.rect.x -= pedal.dir.x;
-
-        if (IsKeyDown(KEY_W)) reset_game();
-
-        // dont let the pedal go out of bounds
-        if (pedal.rect.x >= SCREEN_WIDTH - pedal.rect.width) 
-            pedal.rect.x = SCREEN_WIDTH - pedal.rect.width;
-        if (pedal.rect.x <= 0) 
-            pedal.rect.x = 0;
-
-        /* ==== BALL UPDATE ==== */
-        // normalize ball dir vector for fixing it diagonal movement, 
-        // then, scale it 
-        ball.dir = Vector2Scale(Vector2Normalize(ball.dir), ball_speed_scale);
-        ball.rect.y += ball.dir.y;
-
-        if (ball.rect.y >= SCREEN_HEIGHT - ball.rect.height || ball.rect.y <= 0) {
-            ball.dir.y *= -1.0;
-            ball_speed_scale += BALL_SPEED_STEP;
-        }
-        if (apply_vertical_collision(&ball, &pedal))
-            ball_speed_scale += 0.1;
-        for (int i = 0; i < BLOCKS_COUNT; i++)  
-            if (blocks[i].is_valid &&
-                apply_vertical_collision(&ball, &blocks[i])) 
-            {
-                player_score += 10;
-                ball_speed_scale += BALL_SPEED_STEP;
-                blocks[i].is_valid = 0;
-            }
-
-        ball.rect.x += ball.dir.x;
-        if (ball.rect.x >= SCREEN_WIDTH - ball.rect.width || ball.rect.x <= 0) {
-            ball.dir.x *= -1.0;
-            ball_speed_scale += BALL_SPEED_STEP;
-        }
-        if (apply_horizontal_collision(&ball, &pedal))
-            ball_speed_scale += 0.1;
-        for (int i = 0; i < BLOCKS_COUNT; i++) 
-            if (blocks[i].is_valid &&
-                apply_horizontal_collision(&ball, &blocks[i]))
-            {
-                player_score += 10;
-                ball_speed_scale += BALL_SPEED_STEP;
-                blocks[i].is_valid = 0;
-            }
-
-        BeginDrawing();
-            player_score_size = floor(log10(abs(player_score))) + 1;
-            const char *score = TextFormat("%d", player_score);
-            const int score_width = MeasureText(score, FONT_SIZE);
-            DrawText(
-                score,
-                (SCREEN_WIDTH - score_width)/2,
-                10,
-                FONT_SIZE,
-                WHITE
-            );
-            DrawRectangleRec(pedal.rect, pedal.color);
-            DrawRectangleRec(ball.rect, ball.color);
-            for (int i = 0; i < BLOCKS_COUNT; i++) {
-                Object block = blocks[i];
-                if (block.is_valid) 
-                    DrawRectangleRec(block.rect, block.color);
-            }
-            ClearBackground(BLACK);
-        EndDrawing();
-    }
-    CloseWindow();
-    return 0;
-}
