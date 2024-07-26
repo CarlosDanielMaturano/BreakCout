@@ -94,10 +94,11 @@ int main(void) {
         ball.dir = Vector2Scale(Vector2Normalize(ball.dir), ball_speed_scale);
         ball.rect.y += ball.dir.y;
 
-        if (ball.rect.y >= SCREEN_HEIGHT - ball.rect.height || ball.rect.y <= 0) {
+        if (ball.rect.y <= 0) {
             ball.dir.y *= -1.0;
             ball_speed_scale += BALL_SPEED_STEP;
         }
+        if (ball.rect.y >= SCREEN_HEIGHT - ball.rect.height) reset_game();
         if (apply_vertical_collision(&ball, &pedal))
             ball_speed_scale += 0.1;
         for (int i = 0; i < BLOCKS_COUNT; i++)  
@@ -165,6 +166,9 @@ void reset_game() {
         .height = BALL_SIZE
     };
     ball.dir = (Vector2) { BALL_SPEED, BALL_SPEED };
+    player_score = 0;
+    ball_speed_scale = 5.0;
+    create_blocks();
 }
 
 void create_blocks() {
