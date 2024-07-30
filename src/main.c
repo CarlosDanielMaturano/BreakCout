@@ -91,8 +91,6 @@ int main(void) {
         if (IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A))
             pedal.dir.x = -PEDAL_SPEED;
 
-        if (IsKeyDown(KEY_W)) reset_game();
-
         if (!has_started) {
             ball.rect.x =  pedal.rect.x + (PEDAL_WIDTH - BALL_SIZE) / 2;
             if (IsKeyDown(KEY_SPACE)) {
