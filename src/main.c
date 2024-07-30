@@ -3,6 +3,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>
+#include <stdio.h>
 #define SCREEN_WIDTH 660
 #define SCREEN_HEIGHT 600
 #define INITIAL_PEDAL_X (SCREEN_WIDTH - PEDAL_WIDTH) / 2 
@@ -12,8 +13,8 @@
 #define BALL_SIZE 15
 #define BALL_SPEED 5.0
 #define BALL_SPEED_STEP 0.045
-#define BLOCK_X_COUNT 10
-#define BLOCK_Y_COUNT 7
+#define BLOCK_X_COUNT 1
+#define BLOCK_Y_COUNT 1
 #define BLOCKS_COUNT BLOCK_X_COUNT * BLOCK_Y_COUNT
 #define FONT_SIZE 60
 
@@ -69,7 +70,9 @@ Color rainbow_colors[] = {
 
 float ball_speed_scale = 5.0;
 int player_score = 0;
+int player_score_step = 10;
 int has_started = 0;
+int has_ended = 0;
 
 int main(void) {
     create_blocks();
@@ -106,7 +109,6 @@ int main(void) {
         if (pedal.rect.x <= 0) 
             pedal.rect.x = 0;
 
-
         /* ==== BALL UPDATE ==== */
         // normalize ball dir vector for fixing it diagonal movement, 
         // then, scale it 
@@ -116,17 +118,22 @@ int main(void) {
         if (ball.rect.y <= 0) {
             ball.dir.y *= -1.0;
             ball_speed_scale += BALL_SPEED_STEP;
+            PlaySound(ball_collision_sound);
+            if (player_score_step < 0) 
+                player_score += player_score_step;
         }
         if (ball.rect.y >= SCREEN_HEIGHT - ball.rect.height) reset_game();
         if (apply_vertical_collision(&ball, &pedal)) {
             ball_speed_scale += 0.1;
             PlaySound(ball_collision_sound);
+            if (player_score_step < 0) 
+                player_score += player_score_step;
         }
         for (int i = 0; i < BLOCKS_COUNT; i++)  
             if (blocks[i].is_valid &&
                 apply_vertical_collision(&ball, &blocks[i])) 
             {
-                player_score += 10;
+                player_score += player_score_step;
                 ball_speed_scale += BALL_SPEED_STEP;
                 blocks[i].is_valid = 0;
                 PlaySound(ball_collision_sound);
@@ -137,18 +144,31 @@ int main(void) {
             ball.dir.x *= -1.0;
             ball_speed_scale += BALL_SPEED_STEP;
             PlaySound(ball_collision_sound);
+            if (player_score_step < 0) 
+                player_score += player_score_step;
         }
-        if (apply_horizontal_collision(&ball, &pedal))
+        if (apply_horizontal_collision(&ball, &pedal)) {
+            if (player_score_step < 0) 
+                player_score += player_score_step;
             ball_speed_scale += 0.1;
+        }
         for (int i = 0; i < BLOCKS_COUNT; i++) 
             if (blocks[i].is_valid &&
                 apply_horizontal_collision(&ball, &blocks[i]))
             {
                 PlaySound(ball_collision_sound);
-                player_score += 10;
+                player_score += player_score_step;
                 ball_speed_scale += BALL_SPEED_STEP;
                 blocks[i].is_valid = 0;
             }
+
+        if (!has_ended) {
+            for (size_t i = 0; i < BLOCKS_COUNT; ++i) 
+                has_ended |= !blocks[i].is_valid;
+            if (has_ended) {
+                player_score_step = -1;
+            }
+        }
 
         BeginDrawing();
             const int player_score_size = floor(log10(abs(player_score))) + 1;
@@ -194,6 +214,7 @@ void reset_game() {
     player_score = 0;
     ball_speed_scale = 5.0;
     has_started = 0;
+    has_ended = 0;
     SetRandomSeed((int)time(0));
     create_blocks();
 }
