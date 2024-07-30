@@ -2,6 +2,7 @@
 #include "raymath.h"
 #include <math.h>
 #include <stdlib.h>
+#include <time.h>
 #define SCREEN_WIDTH 660
 #define SCREEN_HEIGHT 600
 #define INITIAL_PEDAL_X (SCREEN_WIDTH - PEDAL_WIDTH) / 2 
@@ -75,6 +76,7 @@ int main(void) {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "breakout");
     InitAudioDevice();
     SetTargetFPS(60);
+    SetRandomSeed((int)time(0));
 
     Sound ball_collision_sound = LoadSound("resources/sound.wav");
 
@@ -191,8 +193,9 @@ void reset_game() {
     ball.dir = (Vector2) { 0.0, 0.0 };
     player_score = 0;
     ball_speed_scale = 5.0;
-    create_blocks();
     has_started = 0;
+    SetRandomSeed((int)time(0));
+    create_blocks();
 }
 
 
