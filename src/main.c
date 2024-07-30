@@ -13,8 +13,8 @@
 #define BALL_SIZE 15
 #define BALL_SPEED 5.0
 #define BALL_SPEED_STEP 0.045
-#define BLOCK_X_COUNT 1
-#define BLOCK_Y_COUNT 1
+#define BLOCK_X_COUNT 10
+#define BLOCK_Y_COUNT 7
 #define BLOCKS_COUNT BLOCK_X_COUNT * BLOCK_Y_COUNT
 #define FONT_SIZE 60
 
