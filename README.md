@@ -22,4 +22,4 @@ make all
 ```
 
 ### License
-The project is under the [MIT]() License
+The project is under the [MIT](./LINCESE) License
