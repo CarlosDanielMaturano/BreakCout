@@ -44,11 +44,11 @@ Object pedal = {
 Object ball = {
     .rect = (Rectangle) { 
         .x = INITIAL_PEDAL_X + (PEDAL_WIDTH - BALL_SIZE) / 2,
-        .y = INITIAL_PEDAL_Y - 2 * BALL_SIZE,
+        .y = INITIAL_PEDAL_Y - BALL_SIZE,
         .width = BALL_SIZE,
         .height = BALL_SIZE
     },
-    .dir = { BALL_SPEED, BALL_SPEED },
+    .dir = { 0.0, 0.0 },
     .color = RAYWHITE,
     .is_valid = 1,
 };
@@ -68,6 +68,7 @@ Color rainbow_colors[] = {
 
 float ball_speed_scale = 5.0;
 int player_score = 0;
+int has_started = 0;
 
 int main(void) {
     create_blocks();
@@ -79,18 +80,30 @@ int main(void) {
 
     while (!WindowShouldClose()) {
         /* ==== PLAYER UPDATE ==== */
+        pedal.dir = Vector2Zero();
         if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D))
-            pedal.rect.x += pedal.dir.x;
+            pedal.dir.x = PEDAL_SPEED;
         if (IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A))
-            pedal.rect.x -= pedal.dir.x;
+            pedal.dir.x = -PEDAL_SPEED;
 
         if (IsKeyDown(KEY_W)) reset_game();
 
+        if (!has_started) {
+            ball.rect.x =  pedal.rect.x + (PEDAL_WIDTH - BALL_SIZE) / 2;
+            if (IsKeyDown(KEY_SPACE)) {
+                int x_dir = GetRandomValue(0, 1) ? 1 : -1;
+                ball.dir = (Vector2) { BALL_SPEED * x_dir, BALL_SPEED };
+                has_started = true;
+            };
+        } 
+
+        pedal.rect.x += pedal.dir.x;
         // dont let the pedal go out of bounds
         if (pedal.rect.x >= SCREEN_WIDTH - pedal.rect.width) 
             pedal.rect.x = SCREEN_WIDTH - pedal.rect.width;
         if (pedal.rect.x <= 0) 
             pedal.rect.x = 0;
+
 
         /* ==== BALL UPDATE ==== */
         // normalize ball dir vector for fixing it diagonal movement, 
@@ -171,15 +184,17 @@ void reset_game() {
     pedal.dir = (Vector2) { .x = PEDAL_SPEED, .y = 0.0 };
     ball.rect = (Rectangle) {
         .x = INITIAL_PEDAL_X + (PEDAL_WIDTH - BALL_SIZE) / 2,
-        .y = INITIAL_PEDAL_Y - 2 * BALL_SIZE,
+        .y = INITIAL_PEDAL_Y - BALL_SIZE,
         .width = BALL_SIZE,
         .height = BALL_SIZE
     };
-    ball.dir = (Vector2) { BALL_SPEED, BALL_SPEED };
+    ball.dir = (Vector2) { 0.0, 0.0 };
     player_score = 0;
     ball_speed_scale = 5.0;
     create_blocks();
+    has_started = 0;
 }
+
 
 void create_blocks() {
     Vector2 block_pos = (Vector2) {
